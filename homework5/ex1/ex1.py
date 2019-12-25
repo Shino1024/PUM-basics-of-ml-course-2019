@@ -4,6 +4,7 @@ import json
 from sklearn.cluster import KMeans
 import numpy as np
 from sklearn.metrics import davies_bouldin_score
+import statistics
 from pandas import DataFrame
 
 CENTERS = 9
@@ -14,6 +15,7 @@ POINTS = [
     1000
 ]
 K_MEANS_MAX = 20
+ITERATIONS = 10
 KMEANS_INITIALIZATION = [
     "random",
     "forgy",
@@ -30,7 +32,7 @@ def prepare_dataset():
             x = (i % 3) + 1
             y = (i // 3) + 1
             test_case.extend([
-                ((random.uniform(x - 0.3, x + 0.3), random.uniform(y - 0.3, y + 0.3)), i) for _ in range(points)
+                (random.uniform(x - 0.3, x + 0.3), random.uniform(y - 0.3, y + 0.3)) for _ in range(points)
             ])
         dataset[points] = test_case
     return dataset
@@ -44,39 +46,39 @@ def prepare_spoiled_dataset():
     dataset = {}
     for points in POINTS:
         test_case = []
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 1, 1, 0.5), [
-            ((random.uniform(0.5, 1.5), random.uniform(0.5, 1.5)), 0) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 1, 1, 0.5), [
+            (random.uniform(0.5, 1.5), random.uniform(0.5, 1.5)) for _ in range(points)
         ]))
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 2, 1, 0.3), [
-            ((random.uniform(1.7, 2.3), random.uniform(0.7, 1.3)), 1) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 2, 1, 0.3), [
+            (random.uniform(1.7, 2.3), random.uniform(0.7, 1.3)) for _ in range(points)
         ]))
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 3, 1, 0.3), [
-            ((random.uniform(2.7, 3.3), random.uniform(0.7, 1.3)), 2) for _ in range(points * 3)
+        test_case.extend(filter(lambda point: point_in_circle(point, 3, 1, 0.3), [
+            (random.uniform(2.7, 3.3), random.uniform(0.7, 1.3)) for _ in range(points * 3)
         ]))
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 1, 2, 0.3), [
-            ((random.uniform(0.7, 1.3), random.uniform(1.7, 2.3)), 3) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 1, 2, 0.3), [
+            (random.uniform(0.7, 1.3), random.uniform(1.7, 2.3)) for _ in range(points)
         ]))
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 2.25, 2, 0.3), [
-            ((random.uniform(1.95, 2.55), random.uniform(1.7, 2.3)), 4) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 2.25, 2, 0.3), [
+            (random.uniform(1.95, 2.55), random.uniform(1.7, 2.3)) for _ in range(points)
         ]))
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 2.75, 2, 0.3), [
-            ((random.uniform(2.45, 3.05), random.uniform(1.7, 2.3)), 5) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 2.75, 2, 0.3), [
+            (random.uniform(2.45, 3.05), random.uniform(1.7, 2.3)) for _ in range(points)
         ]))
         test_case.extend([
-            ((random.uniform(0.85, 1.15), random.uniform(2.6, 3.4)), 6) for _ in range(points)
+            (random.uniform(0.85, 1.15), random.uniform(2.6, 3.4)) for _ in range(points)
         ])
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 2, 8, 0.3), [
-            ((random.uniform(1.7, 2.3), random.uniform(7.7, 8.3)), 7) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 2, 8, 0.3), [
+            (random.uniform(1.7, 2.3), random.uniform(7.7, 8.3)) for _ in range(points)
         ]))
-        test_case.extend(filter(lambda point: point_in_circle(point[0], 3, 3, 0.3), [
-            ((random.uniform(2.7, 3.3), random.uniform(2.7, 3.3)), 8) for _ in range(points)
+        test_case.extend(filter(lambda point: point_in_circle(point, 3, 3, 0.3), [
+            (random.uniform(2.7, 3.3), random.uniform(2.7, 3.3)) for _ in range(points)
         ]))
         dataset[points] = test_case
     return dataset
 
 
 def get_random_centroids(dataset, no_centroids):
-    return random.shuffle(dataset)[0:no_centroids]
+    return random.sample(list(dataset), no_centroids)
 
 
 def show_dataset(dataset):
@@ -85,47 +87,70 @@ def show_dataset(dataset):
         plt.show()
 
 
-def initialize_kmeans(initialization, dataset, no_clusters, no_iterations):
+def initialize_kmeans(initialization, dataset, no_clusters):
     kmeans = None
 
     if initialization == "random":
-        uniform_distribution = [[[i, j] for j in range(1, 4)] for i in range(1, 4)]
+        uniform_distribution = np.array([[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]])
+        # print(uniform_distribution.shape)
         kmeans = KMeans(init=np.array(uniform_distribution), n_clusters=no_clusters)
 
     if initialization == "forgy":
-        kmeans = KMeans(init="k-means++", n_clusters=no_clusters, n_init=no_iterations)
+        kmeans = KMeans(init="random", n_clusters=no_clusters)
 
     if initialization == "random_partition":
         partitions_centroids = get_random_centroids(dataset, no_clusters)
         kmeans = KMeans(init=np.array(partitions_centroids), n_clusters=no_clusters)
 
     if initialization == "k-means++":
-        kmeans = KMeans(init="k-means++", n_clusters=no_clusters, n_init=no_iterations)
+        kmeans = KMeans(init="k-means++", n_clusters=no_clusters)
 
     return kmeans
+
+
+def run_kmeans(dataset):
+    kmeans_result = {i: {j: {name: {p: 0 for p in POINTS} for name in KMEANS_INITIALIZATION} for j in range(1, K_MEANS_MAX + 1)} for i in range(ITERATIONS)}
+    for i in range(ITERATIONS):
+        for j in range(1, K_MEANS_MAX + 1):
+            for name in KMEANS_INITIALIZATION:
+                # print("==========================")
+                for p in POINTS:
+                    # print(points[100].shape)
+                    kmeans = initialize_kmeans(name, dataset[p], 9)
+                    # print(list(zip(*points[p]))[0])
+                    kmeans.fit(dataset[p])
+                    kmeans_result[i][j][name][p] = davies_bouldin_score(dataset[p], kmeans.labels_)
+                    # print(davies_bouldin_score(dataset[p], kmeans.labels_))
+                    # print("--------")
+                    # print(kmeans.cluster_centers_)
+    return kmeans_result
+
+
+def get_kmeans_iteration_mean(kmeans_result):
+    means = {j: {name: {p: statistics.mean([kmeans_result[i][j][name][p] for i in range(ITERATIONS)]) for p in POINTS} for name in KMEANS_INITIALIZATION} for j in range(1, K_MEANS_MAX + 1)}
+    return means
+
+
+def get_kmeans_iteration_standard_deviation(kmeans_result):
+    standard_deviation = {j: {name: {p: statistics.stdev([kmeans_result[i][j][name][p] for i in range(ITERATIONS)]) for p in POINTS} for name in KMEANS_INITIALIZATION} for j in range(1, K_MEANS_MAX + 1)}
+    return standard_deviation
 
 
 def run():
     dataset = prepare_dataset()
     spoiled_dataset = prepare_spoiled_dataset()
-    points = {points: np.array(tuple(zip(*dataset[points]))[0]) for points in POINTS}
-    classes = {points: np.array(tuple(zip(*dataset[points]))[1]) for points in POINTS}
-    print(points[100])
-    spoiled_points = {points: np.array(tuple(zip(*spoiled_dataset[points]))[0]) for points in POINTS}
-    spoiled_classes = {points: np.array(tuple(zip(*spoiled_dataset[points]))[1]) for points in POINTS}
-    show_dataset(points)
-    show_dataset(spoiled_points)
-    for name in KMEANS_INITIALIZATION:
-        for p in POINTS:
-            print(points[100].shape)
-            kmeans = initialize_kmeans(name, points[p], 9, 10)
-            print(list(zip(*points[p]))[0])
-            data_frame = DataFrame({
-                "x": list(zip(*points[p]))[0],
-                "y": list(zip(*points[p]))[1]
-            })
-            kmeans.fit(data_frame)
-            print(davies_bouldin_score(points[p], classes[p]))
+    # print(points[100])
+    show_dataset(dataset)
+    show_dataset(spoiled_dataset)
+    kmeans_result = {"dataset": run_kmeans(dataset), "spoiled_dataset": run_kmeans(spoiled_dataset)}
+    dataset_means = get_kmeans_iteration_mean(kmeans_result["dataset"])
+    spoiled_dataset_means = get_kmeans_iteration_mean(kmeans_result["spoiled_dataset"])
+    dataset_standard_deviation = get_kmeans_iteration_standard_deviation(kmeans_result["dataset"])
+    spoiled_dataset_standard_deviation = get_kmeans_iteration_standard_deviation(kmeans_result["spoiled_dataset"])
+    print(json.dumps(dataset_means, indent=2))
+    print(json.dumps(spoiled_dataset_means, indent=2))
+    print(json.dumps(dataset_standard_deviation, indent=2))
+    print(json.dumps(spoiled_dataset_standard_deviation, indent=2))
 
 
 if __name__ == "__main__":
