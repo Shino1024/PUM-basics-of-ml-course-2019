@@ -11,16 +11,17 @@ import matplotlib.pyplot as plt
 
 
 CHOSEN_POINTS = [
-    396 * 299,
-    160 * 360,
-    340 * 126,
-    340 * 102,
-    344 * 155,
-    339 * 170,
-    77 * 220,
-    201 * 204,
-    439 * 144,
-    521 * 262
+    67 * 25,
+    106 * 64,
+    261 * 76,
+    261 * 105,
+    66 * 176,
+    138 * 158,
+    359 * 199,
+    308 * 226,
+    149 * 258,
+    261 * 128,
+    402 * 147
 ]
 
 
@@ -33,32 +34,27 @@ SCORING_METHODS = [
 
 def get_picture_data(remove_duplicates=False):
     picture_data = np.array(Image.open("../assets/balloon_forest.jpg").convert("RGB"))
-    plt.imshow(picture_data)
     picture_shape = picture_data.shape
     picture_data = np.reshape(picture_data, (picture_data.shape[0] * picture_data.shape[1], picture_data.shape[2]))
-    print(picture_data.shape)
-    print(picture_shape)
     if remove_duplicates:
-        pass
+        picture_data = np.unique(picture_data)
         # picture_data
     return picture_data, picture_shape
 
 
-def calculate_distortion(dataset, model):
-    return np.sum(np.min(cdist(dataset, model.cluster_centers_, "euclidean"), axis=1)) / dataset.shape[0]
+def calculate_distortion(dataset, cluster_centers):
+    return np.sum(np.min(cdist(dataset, cluster_centers, "euclidean"), axis=1)) / dataset.shape[0]
 
 
 def get_optimal_k_elbow(dataset):
     distortions = []
     for k in range(2, len(CHOSEN_POINTS) + 1):
         kmeans = KMeans(n_clusters=k)
-        model = kmeans.fit(dataset)
-        distortion = calculate_distortion(dataset, model)
-        print(distortion)
+        kmeans.fit(dataset)
+        distortion = calculate_distortion(dataset, kmeans.cluster_centers_)
         distortions.append(distortion)
 
     knee_locator = KneeLocator(range(1, len(distortions) + 1), distortions, curve="convex", direction="decreasing")
-    print(knee_locator.knee)
     return knee_locator.knee
 
 
@@ -67,58 +63,52 @@ def get_optimal_k_silhouette(dataset):
     for k in range(2, len(CHOSEN_POINTS) + 1):
         kmeans = KMeans(n_clusters=k)
         labels = kmeans.fit_predict(dataset)
-        print("Labels:")
-        print(labels)
-        print("Dataset:")
-        print(dataset)
-        silhouette = silhouette_score(dataset, labels)
-        print(silhouette)
+        silhouette = silhouette_score(dataset, labels, sample_size=2 ** 12)
         silhouettes.append(silhouette)
-    k = silhouettes.index(max(silhouettes))
+    k = silhouettes.index(max(silhouettes)) + 2
     return k
 
 
 def get_optimal_k_gap_statistic(dataset):
-    optimal_k_generator = OptimalK(n_jobs=dataset.shape[0] ** 0.1)
-    k = optimal_k_generator(dataset)
+    optimal_k_generator = OptimalK(n_jobs=dataset.shape[0] ** 0.3)
+    print(dataset.shape)
+    k = optimal_k_generator(dataset, cluster_array=np.arange(2, len(CHOSEN_POINTS) + 1))
     return k
 
 
 def get_optimal_k(dataset, method):
     print("Checking optimal k with the " + method + " method...")
+    k = 0
     if method == SCORING_METHODS[0]:
-        return get_optimal_k_elbow(dataset)
+        k = get_optimal_k_elbow(dataset)
     elif method == SCORING_METHODS[1]:
-        return get_optimal_k_silhouette(dataset)
+        k = get_optimal_k_silhouette(dataset)
     elif method == SCORING_METHODS[2]:
-        return get_optimal_k_gap_statistic(dataset)
-    pass
+        k = get_optimal_k_gap_statistic(dataset)
+    print("Optimal k for the " + method + " method is " + k)
+    return k
 
 
 def choose_initial_points(dataset, k):
     chosen_points = random.sample(CHOSEN_POINTS, k)
+    # return np.array(chosen_points)
     dataset_points = np.array([dataset[chosen_point] for chosen_point in chosen_points])
     return dataset_points
 
 
 def run_kmeans(dataset, initial_points, shape):
     kmeans = KMeans(n_clusters=len(initial_points), init=initial_points, n_init=1)
-    print(dataset)
-    print(initial_points)
-    result = kmeans.fit(dataset)
-    print("Result0:")
+    kmeans.fit(dataset)
     cluster_centers = kmeans.cluster_centers_
-    print(cluster_centers)
     cluster_labels = kmeans.labels_
-    print(cluster_labels)
-    result = np.reshape(cluster_centers[cluster_labels], shape)
-    print("Result:")
-    print(result)
-    print(result.shape)
-    image = Image.fromarray(result, "RGB")
-    image.show()
-    # plt.imshow(result)
-    # plt.show()
+    clustered_image = cluster_centers[cluster_labels].astype(np.int64)
+    result = np.reshape(clustered_image, shape)
+    plt.imshow(result)
+    plt.show()
+    plt.imshow(np.reshape(dataset, shape))
+
+    for i in range(len(initial_points)):
+        plt.contour(da)
     return result
 
 
@@ -137,6 +127,7 @@ def draw_silhouette(pca_map, labels):
 def run_all(dataset, shape):
     for scoring_method in SCORING_METHODS:
         k = get_optimal_k(dataset, scoring_method)
+        print("OPTIMAL K: ", k)
         initial_points = choose_initial_points(dataset, k)
         kmeans_result = run_kmeans(dataset, initial_points, shape)
         # pca_map = map_2d_pca(kmeans_result)
@@ -150,7 +141,7 @@ def run():
     # run_all(picture_data)
     #
     picture_data, picture_shape = get_picture_data(True)
-    # run_all(picture_data)
+    run_all(picture_data, picture_shape)
 
 
 if __name__ == "__main__":
