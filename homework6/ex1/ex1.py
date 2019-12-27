@@ -106,9 +106,6 @@ def run_kmeans(dataset, initial_points, shape):
     plt.imshow(result)
     plt.show()
     plt.imshow(np.reshape(dataset, shape))
-
-    for i in range(len(initial_points)):
-        plt.contour(da)
     return result
 
 
