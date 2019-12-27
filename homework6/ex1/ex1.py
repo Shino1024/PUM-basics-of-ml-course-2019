@@ -21,7 +21,8 @@ CHOSEN_POINTS = [
     308 * 226,
     149 * 258,
     261 * 128,
-    402 * 147
+    402 * 147,
+    262 * 120
 ]
 
 
@@ -85,7 +86,7 @@ def get_optimal_k(dataset, method):
         k = get_optimal_k_silhouette(dataset)
     elif method == SCORING_METHODS[2]:
         k = get_optimal_k_gap_statistic(dataset)
-    print("Optimal k for the " + method + " method is " + k)
+    print("Optimal k for the " + method + " method is " + str(k))
     return k
 
 
