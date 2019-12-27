@@ -102,7 +102,7 @@ def choose_initial_points(dataset, k):
 
 
 def run_kmeans(dataset, initial_points, shape):
-    kmeans = KMeans(n_clusters=len(initial_points), init=initial_points)
+    kmeans = KMeans(n_clusters=len(initial_points), init=initial_points, n_init=1)
     print(dataset)
     print(initial_points)
     result = kmeans.fit(dataset)
