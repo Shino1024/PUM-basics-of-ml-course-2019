@@ -28,8 +28,8 @@ C_COEFFICIENTS = [
 
 SVC_KERNELS = [
     "rbf",
-    "poly",
-    "linear"
+    "linear",
+    "poly"
 ]
 
 
@@ -60,16 +60,12 @@ def run_svm(dataset, labels, kernel, c, gamma="scale"):
     else:
         svc = SVC(kernel=kernel, C=c, gamma=gamma)
     svc.fit(dataset, labels)
-    print(labels)
     # print(svc.support_vectors_)
     return svc
 
 
-def get_margin_width():
-    pass
-
-
-#
+def pixel_in_appropriate_area(a, xx, pixel):
+    return 1
 
 
 def run():
@@ -92,21 +88,27 @@ def run():
 
         plt.scatter(svm_result.support_vectors_[:, 0], svm_result.support_vectors_[:, 1],
                     s=80, facecolors='none')
-        plt.scatter(pixels[:, 0], pixels[:, 1])
+        plt.scatter(pixels[:, 0], pixels[:, 1], c=list(map(lambda x: "#FF0000" if x == 0 else "#0000FF", labels)))
 
         plt.axis('tight')
         plt.show()
-        results["linear"][c] = [svm_result]
+        wrongness_list = [
+            pixel_in_appropriate_area(a, xx, pixel) for pixel in pixels
+        ]
+        wrongness = sum(wrongness_list) / len(wrongness_list)
+        results["linear"][c] = [(margin, wrongness)]
         print("=============")
 
     for c in C_COEFFICIENTS:
         svm_result = run_svm(pixels, labels, "poly", c)
         results["poly"][c] = [svm_result]
 
-    for gamma in GAMMAS:
-        for c in C_COEFFICIENTS:
+    for c in C_COEFFICIENTS:
+        results["rbf"][c] = {}
+        for gamma in GAMMAS:
             svm_result = run_svm(pixels, labels, "rbf", c, gamma)
-            results["rbf"][c].append(svm_result)
+            print(svm_result.support_vectors_)
+            results["rbf"][c][gamma] = svm_result
 
     # print(results["linear"])
 
