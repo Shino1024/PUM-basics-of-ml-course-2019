@@ -114,7 +114,7 @@ def plot_data(mean, standard_deviation):
         axes = plt.gca()
         axes.set_ylim(0.0, 1.0)
         axes.set_xlim(1, DIMENSIONS)
-        plt.xticks(range(1, DIMENSIONS + 1))
+        plt.xticks(range(0, DIMENSIONS + 1))
         plt.scatter(range(1, DIMENSIONS + 1), means, cmap="rainbow")
         plt.errorbar(range(1, DIMENSIONS + 1), means,
                      xerr=[0 for _ in range(1, DIMENSIONS + 1)], yerr=standard_deviations)
