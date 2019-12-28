@@ -55,7 +55,7 @@ def get_angle_between_points(four_points):
     return angle_between(first_pair, second_pair)
 
 
-def get_random_pairs_of_points(data):
+def get_angles_of_random_pairs_of_points(data):
     iteration_data = []
     for i in range(ITERATIONS):
         dimension_data = {}
@@ -76,8 +76,8 @@ def plot_data_to_file(data):
 def run():
     data = generate_points(DIMENSIONS)
     # print(json.dumps(get_random_pairs_of_points(data), indent=2))
-    mean_angles = get_random_pairs_of_points(data)
-    mean_angles = {dimension: list(map(lambda l: sum(l) / len(l), list(zip(*[mean_angles[i][dimension] for i in range(ITERATIONS)])))) for dimension in range(1, DIMENSIONS + 1)}
+    mean_angles = get_angles_of_random_pairs_of_points(data)
+    # mean_angles = {dimension: list(map(lambda l: sum(l) / len(l), list(zip(*[mean_angles[i][dimension] for i in range(ITERATIONS)])))) for dimension in range(1, DIMENSIONS + 1)}
     print(json.dumps(mean_angles, indent=2))
 
     # print(json.dumps(dimension_data, indent=2))
