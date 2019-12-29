@@ -64,16 +64,10 @@ def run():
     print(json.dumps(colors, indent=2))
     pca_result = run_pca(points)
     print(json.dumps(list(zip(*pca_result[2][3])), indent=2))
-    plt.scatter(*zip(*pca_result[2][3]), color=colors[3])
-    plt.show()
-    plt.scatter(*zip(*pca_result[2][4]), color=colors[4])
-    plt.show()
-    plt.scatter(*zip(*pca_result[2][5]), color=colors[5])
-    plt.show()
-    plt.scatter(*zip(*pca_result[2][7]), color=colors[7])
-    plt.show()
-    plt.scatter(*zip(*pca_result[2][13]), color=colors[13])
-    plt.show()
+    for d in [2, 3]:
+        for dimension in DIMENSIONS:
+            plt.scatter(*zip(*pca_result[d][dimension]), color=colors[dimension])
+            plt.show()
 
     # print(json.dumps(run_pca(points), indent=2))
     # print(json.dumps(dimension_data, indent=2))
