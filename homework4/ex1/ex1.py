@@ -11,8 +11,9 @@ import glob
 
 DIMENSIONS = [
     5,
+    10,
     15,
-    50
+    25
 ]
 
 
@@ -34,23 +35,21 @@ def read_photos():
     for path in paths:
         print(path)
         handle = Image.open(path).convert("LA")
-        print(np.array(handle))
         image = []
         for row in np.array(handle):
             for pixel in row:
-                image.append([pixel[0]])
+                image.append(pixel[0])
         photos.append(image)
-    return photos
+    return np.array(photos)
 
 
 def run_pca(dataset):
-    dimension_data = {dimension: [] for dimension in DIMENSIONS}
+    dimension_data = {}
     for dimension in DIMENSIONS:
         pca = PCA(n_components=dimension)
-        for photo in dataset:
-            print(len(photo))
-            pca_data = pca.fit_transform(photo)
-            dimension_data[dimension].append(pca_data)
+        print(dataset.shape)
+        pca_data = pca.fit_transform(dataset)
+        dimension_data[dimension] = np.array(pca_data)
     return dimension_data
 
 
@@ -58,7 +57,21 @@ def run():
     dataset = read_photos()
     # print(dataset[0][:50])
     pca_data = run_pca(dataset)
-    print(json.dumps(pca_data, indent=2))
+    for dimension in reversed(DIMENSIONS):
+        plt.imshow(pca_data[dimension], cmap="gray")
+        plt.show()
+        # fig = plt.figure(figsize=(6,6))
+        # fig.subplots_adjust(left=0, right=1, bottom=0, top=1, hspace=0.05, wspace=0.05)
+        # ax = fig.add_subplot(8, 8, DIMENSIONS.index(dimension) + 1, xticks=[], yticks=[])
+        # ax.imshow(pca_data[dimension], interpolation='nearest')
+        # for i in range(dimension):
+        #     ax = fig.add_subplot(8, 8, i + 1, xticks=[], yticks=[])
+        #     ax.imshow(pca_data[dimension][i], cmap=plt.cm.bone, interpolation='nearest')
+    # plt.show()
+    # fig, axes = plt.subplots(10, 10, figsize=(9, 9), subplot_kw={"xticks":[], "yticks":[]},
+    #                          gridspec_kw = dict(hspace=0.01, wspace=0.01))
+    # for i, ax in enumerate(axes.flat):
+    #     ax.imshow(faces.iloc[i].values.reshape(112, 92), cmap="gray")
 
 
 if __name__ == "__main__":
