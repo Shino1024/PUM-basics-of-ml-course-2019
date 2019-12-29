@@ -35,36 +35,37 @@ def prepare_dataset():
 def run_pca(data):
     pca2 = PCA(n_components=2)
     pca_data = pca2.fit_transform(data).tolist()
-    print(pca2.components_)
-    print(pca2.explained_variance_)
-    print(pca2.explained_variance_ratio_)
+    # print(pca2.components_)
+    # print(pca2.explained_variance_)
+    # print(pca2.explained_variance_ratio_)
     return pca_data, pca2.components_
 
 
-def run_cosine_pca(data, centering):
+def run_cosine_pca(data, colors, centering):
     kernel_pca2_cosine = KernelPCA(n_components=2, kernel="cosine")
     if not centering:
         data = [[pixel[0] / 5 * ((pixel[0] / 321) ** 3), pixel[1] / 2 * ((pixel[1] / 435) ** 3)] for pixel in data]
     pca_cosine_data = kernel_pca2_cosine.fit_transform(data)
-    plt.scatter(*zip(*pca_cosine_data))
+    plt.scatter(*zip(*pca_cosine_data), c=colors)
     plt.show()
     pass
 
 
-def run_rbf_pca(data, gamma):
+def run_rbf_pca(data, colors, gamma):
     kernel_pca2_rbf = KernelPCA(n_components=2, kernel="rbf")
     kernel_pca2_rbf.gamma = gamma
     pca_rbf_data = kernel_pca2_rbf.fit_transform(data)
-    plt.scatter(*zip(*pca_rbf_data))
+    print(*zip(*pca_rbf_data))
+    plt.scatter(*zip(*pca_rbf_data), c=colors)
     plt.show()
     pass
 
 
-def run_pca_with_kernel(data):
-    run_cosine_pca(data, centering=False)
-    run_cosine_pca(data, centering=True)
+def run_pca_with_kernel(data, colors):
+    run_cosine_pca(data, colors, centering=False)
+    run_cosine_pca(data, colors, centering=True)
     for gamma in [0.000001, 0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10]:
-        run_rbf_pca(data, gamma)
+        run_rbf_pca(data, colors, gamma)
 
 
 def draw_pca_vectors(pca_components):
@@ -79,13 +80,12 @@ def draw_pca_vectors(pca_components):
 def run():
     dataset = prepare_dataset()
     data = [point[0] for point in [item for sublist in dataset.values() for item in sublist]]
-    print(json.dumps(data, indent=2))
     colors = [point[1] for point in [item for sublist in dataset.values() for item in sublist]]
     pca_data, pca_components = run_pca(data)
     # print(json.dumps(pca_data, indent=2))
     plt.scatter(*zip(*pca_data), color=colors)
     draw_pca_vectors(pca_components)
-    run_pca_with_kernel(data)
+    run_pca_with_kernel(data, colors)
 
 
 if __name__ == "__main__":
