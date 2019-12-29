@@ -5,17 +5,19 @@ from sklearn.cluster import KMeans
 import numpy as np
 from sklearn.metrics import davies_bouldin_score
 import statistics
-from pandas import DataFrame
+import matplotlib.pyplot as plt
 
 CENTERS = 9
 POINTS = [
     100,
     300,
     500,
-    1000
+    1000,
+    3000,
+    5000
 ]
-K_MEANS_MAX = 20
-ITERATIONS = 10
+K_MEANS_MAX = 5
+ITERATIONS = 2
 KMEANS_INITIALIZATION = [
     "random",
     "forgy",
@@ -93,17 +95,17 @@ def initialize_kmeans(initialization, dataset, no_clusters):
     if initialization == "random":
         uniform_distribution = np.array([[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]])
         # print(uniform_distribution.shape)
-        kmeans = KMeans(init=np.array(uniform_distribution), n_clusters=no_clusters)
+        kmeans = KMeans(init=np.array(uniform_distribution), n_clusters=no_clusters, n_init=1, n_jobs=10)
 
     if initialization == "forgy":
-        kmeans = KMeans(init="random", n_clusters=no_clusters)
+        kmeans = KMeans(init="random", n_clusters=no_clusters, n_init=1, n_jobs=10)
 
     if initialization == "random_partition":
         partitions_centroids = get_random_centroids(dataset, no_clusters)
-        kmeans = KMeans(init=np.array(partitions_centroids), n_clusters=no_clusters)
+        kmeans = KMeans(init=np.array(partitions_centroids), n_clusters=no_clusters, n_init=1, n_jobs=10)
 
     if initialization == "k-means++":
-        kmeans = KMeans(init="k-means++", n_clusters=no_clusters)
+        kmeans = KMeans(init="k-means++", n_clusters=no_clusters, n_init=1, n_jobs=10)
 
     return kmeans
 
@@ -132,8 +134,8 @@ def get_kmeans_iteration_mean(kmeans_result):
 
 
 def get_kmeans_iteration_standard_deviation(kmeans_result):
-    standard_deviation = {j: {name: {p: statistics.stdev([kmeans_result[i][j][name][p] for i in range(ITERATIONS)]) for p in POINTS} for name in KMEANS_INITIALIZATION} for j in range(1, K_MEANS_MAX + 1)}
-    return standard_deviation
+    standard_deviations = {j: {name: {p: statistics.stdev([kmeans_result[i][j][name][p] for i in range(ITERATIONS)]) for p in POINTS} for name in KMEANS_INITIALIZATION} for j in range(1, K_MEANS_MAX + 1)}
+    return standard_deviations
 
 
 def run():
@@ -144,13 +146,38 @@ def run():
     show_dataset(spoiled_dataset)
     kmeans_result = {"dataset": run_kmeans(dataset), "spoiled_dataset": run_kmeans(spoiled_dataset)}
     dataset_means = get_kmeans_iteration_mean(kmeans_result["dataset"])
-    spoiled_dataset_means = get_kmeans_iteration_mean(kmeans_result["spoiled_dataset"])
-    dataset_standard_deviation = get_kmeans_iteration_standard_deviation(kmeans_result["dataset"])
-    spoiled_dataset_standard_deviation = get_kmeans_iteration_standard_deviation(kmeans_result["spoiled_dataset"])
     print(json.dumps(dataset_means, indent=2))
+    spoiled_dataset_means = get_kmeans_iteration_mean(kmeans_result["spoiled_dataset"])
     print(json.dumps(spoiled_dataset_means, indent=2))
+    dataset_standard_deviation = get_kmeans_iteration_standard_deviation(kmeans_result["dataset"])
     print(json.dumps(dataset_standard_deviation, indent=2))
+    spoiled_dataset_standard_deviation = get_kmeans_iteration_standard_deviation(kmeans_result["spoiled_dataset"])
     print(json.dumps(spoiled_dataset_standard_deviation, indent=2))
+    plot_data = {kmeans_initialization: {points: {} for points in POINTS} for kmeans_initialization in KMEANS_INITIALIZATION}
+    for kmeans_initialization in KMEANS_INITIALIZATION:
+        for points in POINTS:
+            for k in range(1, K_MEANS_MAX + 1):
+                plot_data[kmeans_initialization][points][k] = dataset_means[k][kmeans_initialization][points]
+            plt.xlabel("k")
+            plt.ylabel("Mean scores with standard deviations of normal dataset")
+            plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
+            keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
+            for k in range(1, K_MEANS_MAX + 1):
+                plot_data[kmeans_initialization][points][k] = dataset_standard_deviation[k][kmeans_initialization][points]
+            plt.errorbar(keys, values, yerr=plot_data[kmeans_initialization][points].values())
+            plt.show()
+    for kmeans_initialization in KMEANS_INITIALIZATION:
+        for points in POINTS:
+            for k in range(1, K_MEANS_MAX + 1):
+                plot_data[kmeans_initialization][points][k] = spoiled_dataset_means[k][kmeans_initialization][points]
+            plt.xlabel("k")
+            plt.ylabel("Mean scores with standard deviations of spoiled dataset")
+            plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
+            keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
+            for k in range(1, K_MEANS_MAX + 1):
+                plot_data[kmeans_initialization][points][k] = spoiled_dataset_standard_deviation[k][kmeans_initialization][points]
+            plt.errorbar(keys, values, yerr=plot_data[kmeans_initialization][points].values())
+            plt.show()
 
 
 if __name__ == "__main__":
