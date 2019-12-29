@@ -55,7 +55,6 @@ def run_rbf_pca(data, colors, gamma):
     kernel_pca2_rbf = KernelPCA(n_components=2, kernel="rbf")
     kernel_pca2_rbf.gamma = gamma
     pca_rbf_data = kernel_pca2_rbf.fit_transform(data)
-    print(*zip(*pca_rbf_data))
     plt.scatter(*zip(*pca_rbf_data), c=colors)
     plt.show()
     pass
