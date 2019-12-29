@@ -34,7 +34,7 @@ def read_photos():
     for path in paths:
         print(path)
         handle = Image.open(path).convert("LA")
-        # print(np.array(handle))
+        print(np.array(handle))
         image = []
         for row in np.array(handle):
             for pixel in row:
