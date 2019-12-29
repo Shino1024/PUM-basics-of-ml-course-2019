@@ -62,19 +62,21 @@ def print_data(result):
 
 def run():
     knns = [
-        KNeighborsClassifier(n_neighbors=1, weights="uniform", metric="euclidean", n_jobs=100),
-        KNeighborsClassifier(n_neighbors=7, weights="uniform", metric="euclidean", n_jobs=100),
-        KNeighborsClassifier(n_neighbors=7, weights="distance", metric="euclidean", n_jobs=100),
-        # KNeighborsClassifier(n_neighbors=1, weights="uniform", metric="mahalanobis"),
-        # KNeighborsClassifier(n_neighbors=7, weights="distance", metric="mahalanobis"),
+        KNeighborsClassifier(algorithm="brute", n_neighbors=1, weights="uniform", metric="mahalanobis", n_jobs=1000),
+        KNeighborsClassifier(algorithm="brute",  n_neighbors=7, weights="distance", metric="mahalanobis", n_jobs=1000),
+        KNeighborsClassifier(n_neighbors=1, weights="uniform", metric="euclidean", n_jobs=1000),
+        KNeighborsClassifier(n_neighbors=7, weights="uniform", metric="euclidean", n_jobs=1000),
+        KNeighborsClassifier(n_neighbors=7, weights="distance", metric="euclidean", n_jobs=1000),
     ]
     datasets = get_datasets()
     # print(datasets)
 
-    h = 0.01
+    h = 0.1
     for filename in FILENAMES:
         for knn in knns:
             if knn.metric == "mahalanobis":
+                print(datasets[filename]["model"].shape)
+                print(np.cov(datasets[filename]["model"]).shape)
                 knn.metric_params = {"V": np.cov(datasets[filename]["model"])}
             # print_data(knn.fit(datasets[filename]["model"], datasets[filename]["labels"]))
             X = datasets[filename]["model"]
@@ -99,7 +101,8 @@ def run():
             print("c")
             plt.xlim(xx.min(), xx.max())
             plt.ylim(yy.min(), yy.max())
-            plt.title("3-Class classification (k = %i, weights = '%s')" % (knn.n_neighbors, knn.weights))
+            plt.title("KNearestNeighbors (k = %i, weights = '%s', metric = '%s')"
+                      % (knn.n_neighbors, knn.weights, knn.metric))
             plt.show()
 
 
