@@ -160,7 +160,7 @@ def run():
                 plot_data[kmeans_initialization][points][k] = dataset_means[k][kmeans_initialization][points]
             plt.xlabel("k")
             plt.ylabel("Mean scores with standard deviations of normal dataset")
-            plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
+            # plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
             keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
             for k in range(1, K_MEANS_MAX + 1):
                 plot_data[kmeans_initialization][points][k] = dataset_standard_deviation[k][kmeans_initialization][points]
@@ -172,7 +172,7 @@ def run():
                 plot_data[kmeans_initialization][points][k] = spoiled_dataset_means[k][kmeans_initialization][points]
             plt.xlabel("k")
             plt.ylabel("Mean scores with standard deviations of spoiled dataset")
-            plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
+            # plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
             keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
             for k in range(1, K_MEANS_MAX + 1):
                 plot_data[kmeans_initialization][points][k] = spoiled_dataset_standard_deviation[k][kmeans_initialization][points]
