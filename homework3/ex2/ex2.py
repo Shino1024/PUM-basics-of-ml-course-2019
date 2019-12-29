@@ -48,7 +48,6 @@ def run_cosine_pca(data, colors, centering):
     pca_cosine_data = kernel_pca2_cosine.fit_transform(data)
     plt.scatter(*zip(*pca_cosine_data), c=colors)
     plt.show()
-    pass
 
 
 def run_rbf_pca(data, colors, gamma):
@@ -57,7 +56,6 @@ def run_rbf_pca(data, colors, gamma):
     pca_rbf_data = kernel_pca2_rbf.fit_transform(data)
     plt.scatter(*zip(*pca_rbf_data), c=colors)
     plt.show()
-    pass
 
 
 def run_pca_with_kernel(data, colors):
