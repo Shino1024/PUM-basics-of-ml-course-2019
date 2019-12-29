@@ -46,6 +46,7 @@ def run_cosine_pca(data, colors, centering):
     if not centering:
         data = [[pixel[0] / 5 * ((pixel[0] / 321) ** 3), pixel[1] / 2 * ((pixel[1] / 435) ** 3)] for pixel in data]
     pca_cosine_data = kernel_pca2_cosine.fit_transform(data)
+    plt.title("PCA: cosine kernel, " + ("no " if not centering else "") + "centering, " + str(kernel_pca2_cosine.n_components) + " principal components")
     plt.scatter(*zip(*pca_cosine_data), c=colors)
     plt.show()
 
@@ -54,6 +55,7 @@ def run_rbf_pca(data, colors, gamma):
     kernel_pca2_rbf = KernelPCA(n_components=2, kernel="rbf")
     kernel_pca2_rbf.gamma = gamma
     pca_rbf_data = kernel_pca2_rbf.fit_transform(data)
+    plt.title("PCA: RBF kernel, gamma: " + str(gamma) + ", n_components: " + str(kernel_pca2_rbf.n_components))
     plt.scatter(*zip(*pca_rbf_data), c=colors)
     plt.show()
 
@@ -67,6 +69,7 @@ def run_pca_with_kernel(data, colors):
 
 def draw_pca_vectors(pca_components):
     figure, axes = plt.subplots(1)
+    figure.suptitle("Original image with PCA components as vectors")
     handle = Image.open("../assets/PCA.png").convert("RGB")
     image = np.array(handle)
     axes.imshow(handle)
@@ -80,7 +83,9 @@ def run():
     colors = [point[1] for point in [item for sublist in dataset.values() for item in sublist]]
     pca_data, pca_components = run_pca(data)
     # print(json.dumps(pca_data, indent=2))
+    plt.title("Original image after 2D -> 2D PCA transform")
     plt.scatter(*zip(*pca_data), color=colors)
+    plt.show()
     draw_pca_vectors(pca_components)
     run_pca_with_kernel(data, colors)
 

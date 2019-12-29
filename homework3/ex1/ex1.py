@@ -59,13 +59,11 @@ def run_pca(dimension_data):
 def run():
     dimension_data = generate_points()
     points = {dimension: [point[0] for point in dimension_data[dimension]] for dimension in DIMENSIONS}
-    print(json.dumps(points, indent=2))
     colors = {dimension: [point[1] for point in dimension_data[dimension]] for dimension in DIMENSIONS}
-    print(json.dumps(colors, indent=2))
     pca_result = run_pca(points)
-    print(json.dumps(list(zip(*pca_result[2][3])), indent=2))
     for d in [2, 3]:
         for dimension in DIMENSIONS:
+            plt.title("PCA: " + str(dimension) + "D -> " + str(d) + "D")
             plt.scatter(*zip(*pca_result[d][dimension]), color=colors[dimension])
             plt.show()
 
