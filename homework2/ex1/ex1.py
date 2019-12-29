@@ -5,6 +5,7 @@ import numpy as np
 import json
 import random
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
 
 COLORS = {
@@ -70,7 +71,7 @@ def run():
     datasets = get_datasets()
     # print(datasets)
 
-    h = 0.1
+    h = 0.01
     for filename in FILENAMES:
         for knn in knns:
             if knn.metric == "mahalanobis":
@@ -90,10 +91,11 @@ def run():
             # Put the result into a color plot
             Z = Z.reshape(xx.shape)
             plt.figure()
-            plt.pcolormesh(xx, yy, Z, cmap=["#DC0B13", "#11A03B", "#0091D7", "#EEE100"])
+            plt.pcolormesh(xx, yy, Z, cmap=ListedColormap(["#DC0B13", "#11A03B", "#0091D7", "#EEE100"]))
 
             # Plot also the training points
-            plt.scatter(X[:, 0], X[:, 1], c=y, cmap=["#ED1C24", "#22B14C", "#00A2E8", "#FFF200"], edgecolor='k', s=20)
+            plt.scatter(X[:, 0], X[:, 1], c=y, cmap=ListedColormap(["#ED1C24", "#22B14C", "#00A2E8", "#FFF200"]),
+                        edgecolor='k', s=20)
             print("c")
             plt.xlim(xx.min(), xx.max())
             plt.ylim(yy.min(), yy.max())
