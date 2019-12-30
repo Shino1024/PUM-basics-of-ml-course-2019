@@ -159,10 +159,10 @@ def run():
             for k in range(1, K_MEANS_MAX + 1):
                 plot_data[kmeans_initialization][points][k] = dataset_means[k][kmeans_initialization][points]
             plt.xlabel("k")
-            plt.ylabel("Mean scores with standard deviations of normal dataset")
-            plt.title("")
+            plt.ylabel("Mean scores")
+            plt.title("Mean scores - normal dataset - " + kmeans_initialization + ", " + str(points) + " points")
             plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
-            keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
+            keys, values = list(plot_data[kmeans_initialization][points].keys()), list(plot_data[kmeans_initialization][points].values())
             for k in range(1, K_MEANS_MAX + 1):
                 plot_data[kmeans_initialization][points][k] = dataset_standard_deviation[k][kmeans_initialization][points]
             plt.errorbar(keys, values, yerr=plot_data[kmeans_initialization][points].values())
@@ -172,10 +172,10 @@ def run():
             for k in range(1, K_MEANS_MAX + 1):
                 plot_data[kmeans_initialization][points][k] = spoiled_dataset_means[k][kmeans_initialization][points]
             plt.xlabel("k")
-            plt.ylabel("Mean scores with standard deviations of spoiled dataset")
-            plt.title("")
+            plt.ylabel("Mean scores")
+            plt.title("Mean scores - spoiled dataset - " + kmeans_initialization + ", " + str(points) + " points")
             plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
-            keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
+            keys, values = list(plot_data[kmeans_initialization][points].keys()), list(plot_data[kmeans_initialization][points].values())
             for k in range(1, K_MEANS_MAX + 1):
                 plot_data[kmeans_initialization][points][k] = spoiled_dataset_standard_deviation[k][kmeans_initialization][points]
             plt.errorbar(keys, values, yerr=plot_data[kmeans_initialization][points].values())
