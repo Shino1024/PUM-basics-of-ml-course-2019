@@ -51,9 +51,9 @@ def load_data():
 def run_svm(dataset, labels, kernel, c, gamma="scale"):
     svc = None
     if kernel == "poly":
-        svc = SVC(kernel=kernel, degree=3, C=c, gamma=gamma)
+        svc = SVC(kernel=kernel, degree=3, C=c, gamma=gamma, probability=True)
     else:
-        svc = SVC(kernel=kernel, C=c, gamma=gamma)
+        svc = SVC(kernel=kernel, C=c, gamma=gamma, probability=True)
     svc.fit(dataset, labels)
     # print(svc.support_vectors_)
     return svc
@@ -275,11 +275,14 @@ def run():
                     # plt.subplot(2, 2, i + 1)
                     # plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
-                    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+                    Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])
 
                     # Put the result into a color plot
-                    Z = Z.reshape(xx.shape)
-                    plt.contourf(xx, yy, Z, c=["#DD2222", "#2222DD"], alpha=0.8)
+                    Z0 = Z[:, 0].reshape(xx.shape)
+                    Z1 = Z[:, 1].reshape(xx.shape)
+                    # plt.contourf([[x_ if x_ > svm_result.predict([x_]) else None for x_ in x] for x in xx], [[y_ if y_ > svm_result.predict([y_]) else None for y_ in y] for y in yy], Z0, c=["#DD2222"], alpha=0.8)
+                    plt.contourf(xx, yy, Z0, c=["#DD2222"])
+                    plt.contourf(xx, yy, Z1, c=["#2222DD"])
 
                     # Plot also the training points
                     plt.scatter(X[:, 0], X[:, 1], c=["#FF0000" if svm_result.predict([x]) > 0 else "#0000FF" for x in zip(X[:, 0], X[:, 1])])
@@ -302,14 +305,17 @@ def run():
                 # plt.subplot(2, 2, i + 1)
                 # plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
-                Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+                Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])
 
                 # Put the result into a color plot
-                Z = Z.reshape(xx.shape)
-                plt.contourf(xx, yy, Z, c=["#DD2222", "#2222DD"], alpha=0.8)
+                # Put the result into a color plot
+                Z0 = Z[:, 0].reshape(xx.shape)
+                Z1 = Z[:, 1].reshape(xx.shape)
+                plt.contourf(xx, yy, Z0, c=["#DD2222"])
+                plt.contourf(xx, yy, Z1, c=["#2222DD"])
 
                 # Plot also the training points
-                plt.scatter(X[:, 0], X[:, 1], c=["#FF0000" for x in zip(X[:, 0], X[:, 1] if svm_result.predict(x) > 0 else "#0000FF")])
+                plt.scatter(X[:, 0], X[:, 1], c=["#FF0000" if svm_result.predict([x]) > 0 else "#0000FF" for x in zip(X[:, 0], X[:, 1])])
                 plt.xlim(xx.min(), xx.max())
                 plt.ylim(yy.min(), yy.max())
                 plt.xticks(range(x_min, x_max, 20))
