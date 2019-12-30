@@ -73,8 +73,8 @@ def get_optimal_k_silhouette(dataset):
 def get_optimal_k_gap_statistic(dataset):
     optimal_k_generator = OptimalK(n_jobs=dataset.shape[0] ** 0.3)
     print(dataset.shape)
-    k = optimal_k_generator(dataset, cluster_array=np.arange(2, len(CHOSEN_POINTS) + 1))
-    return k
+    # k = optimal_k_generator(dataset, cluster_array=np.arange(2, len(CHOSEN_POINTS) + 1))
+    return 8
 
 
 def get_optimal_k(dataset, method):
@@ -107,7 +107,7 @@ def run_kmeans(dataset, initial_points, shape):
     plt.imshow(result)
     plt.show()
     plt.imshow(np.reshape(dataset, shape))
-    return result
+    return result, cluster_labels
 
 
 def map_2d_pca(kmeans_result):
@@ -119,8 +119,8 @@ def draw_clusters(pca_map):
 
 
 def draw_silhouette(pca_map, labels):
-    silhouette = silhouette_score(pca_map, labels)
-    silhouette_coefficients = silhouette_samples(pca_map, labels)
+    # silhouette = silhouette_score(pca_map, labels)
+    silhouette_coefficients = silhouette_samples(pca_map.reshape((pca_map.shape[0] * pca_map.shape[1], pca_map.shape[2])), labels)
     print(silhouette_coefficients)
 
 
@@ -129,10 +129,10 @@ def run_all(dataset, shape):
         k = get_optimal_k(dataset, scoring_method)
         print("OPTIMAL K: ", k)
         initial_points = choose_initial_points(dataset, k)
-        kmeans_result = run_kmeans(dataset, initial_points, shape)
+        kmeans_result, labels = run_kmeans(dataset, initial_points, shape)
         # pca_map = map_2d_pca(kmeans_result)
         # draw_clusters(pca_map)
-        # draw_silhouette(pca_map, [])
+        draw_silhouette(kmeans_result, labels)
 
 
 def run():
@@ -140,8 +140,8 @@ def run():
     run_all(picture_data, picture_shape)
     # run_all(picture_data)
     #
-    picture_data, picture_shape = get_picture_data(True)
-    run_all(picture_data, picture_shape)
+    # picture_data, picture_shape = get_picture_data(True)
+    # run_all(picture_data, picture_shape)
 
 
 if __name__ == "__main__":
