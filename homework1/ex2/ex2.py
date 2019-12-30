@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 RADIUS = 1
 SIDE = 2 * RADIUS
-DIMENSIONS = 10
-ITERATIONS = 5
+DIMENSIONS = 15
+ITERATIONS = 10
 
 
 TEST_CASES = [
@@ -16,8 +16,7 @@ TEST_CASES = [
     20,
     50,
     100,
-    200,
-    500
+    200
 ]
 
 
@@ -134,7 +133,7 @@ def plot_data(mean, standard_deviation):
                      xerr=[0 for _ in dimension_standard_deviation.keys()], yerr=dimension_standard_deviation.values())
         axes = plt.gca()
         axes.set_ylim(0.0, 1.0)
-        axes.set_xlim(TEST_CASES[0], TEST_CASES[-1] * 2)
+        axes.set_xlim(TEST_CASES[0], TEST_CASES[-1])
         plt.xlabel("Number of points")
         plt.ylabel("Stddev to mean ratio")
         plt.title("Stddev to mean ratios after 20 iterations for dimension no " + str(dimension))
@@ -149,7 +148,8 @@ def plot_data(mean, standard_deviation):
         axes = plt.gca()
         axes.set_ylim(0.0, 1.0)
         axes.set_xlim(1, DIMENSIONS)
-        plt.xticks(range(0, DIMENSIONS + 1))
+        print(standard_deviations)
+        plt.xticks(range(1, DIMENSIONS + 1))
         plt.scatter(range(1, DIMENSIONS + 1), means, cmap="rainbow")
         plt.errorbar(range(1, DIMENSIONS + 1), means,
                      xerr=[0 for _ in range(1, DIMENSIONS + 1)], yerr=standard_deviations)
@@ -164,6 +164,7 @@ def run():
     # print(json.dumps(dimension_data, indent=2))
     # print(json.dumps(dimension_data, indent=2))
     mean_distance = calculate_mean_distance(data)
+    print(json.dumps(mean_distance, indent=2))
     standard_deviation = calculate_standard_deviation_distance(data)
 
     ratios = calculate_ratios(mean_distance, standard_deviation)
@@ -174,8 +175,8 @@ def run():
     # print(json.dumps(standard_deviation, indent=2))
     means = calculate_mean(ratios)
     standard_deviations = calculate_standard_deviation(ratios)
-    print(json.dumps(means, indent=2))
-    print(json.dumps(standard_deviations, indent=2))
+    # print(json.dumps(means, indent=2))
+    # print(json.dumps(standard_deviations, indent=2))
     # mean_mean_distance = calculate_mean(mean_distance)
     # print(json.dumps(mean_mean_distance, indent=2))
     # mean_standard_deviation_distance = calculate_mean(standard_deviation)

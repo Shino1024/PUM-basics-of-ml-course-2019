@@ -9,7 +9,7 @@ from decimal import Decimal
 RADIUS = 1
 SIDE = 2 * RADIUS
 DIMENSIONS = 15
-ITERATIONS = 10
+ITERATIONS = 20
 
 
 TEST_CASES = [
@@ -112,8 +112,8 @@ def plot_data(mean, standard_deviation):
         axes.set_ylim(0.0, np.pi)
         axes.set_xlim(TEST_CASES[0], TEST_CASES[-1] * 2)
         plt.xlabel("Number of points")
-        plt.ylabel("Stddev to mean ratio")
-        plt.title("Stddev to mean ratios after 20 iterations for dimension no " + str(dimension))
+        plt.ylabel("Mean angle")
+        plt.title("Mean angles after 20 iterations for dimension no " + str(dimension))
         plt.show()
     for i, test_case in enumerate(TEST_CASES):
         means = []
@@ -130,8 +130,8 @@ def plot_data(mean, standard_deviation):
         plt.errorbar(range(1, DIMENSIONS + 1), means,
                      xerr=[0 for _ in range(1, DIMENSIONS + 1)], yerr=standard_deviations)
         plt.xlabel("Dimensions")
-        plt.ylabel("Stddev to mean ratio")
-        plt.title("Stddev to mean ratios after 20 iterations for test case no " + str(i + 1) + " (" + str(test_case) + " points)")
+        plt.ylabel("Mean angle")
+        plt.title("Mean angles after 20 iterations for test case no " + str(i + 1) + " (" + str(test_case) + " points)")
         plt.show()
 
 
