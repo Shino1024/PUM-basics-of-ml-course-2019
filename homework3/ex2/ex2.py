@@ -45,6 +45,9 @@ def run_cosine_pca(data, colors, centering):
     kernel_pca2_cosine = KernelPCA(n_components=2, kernel="cosine")
     if not centering:
         data = [[pixel[0] / 5 * ((pixel[0] / 321) ** 3), pixel[1] / 2 * ((pixel[1] / 435) ** 3)] for pixel in data]
+    plt.scatter(*zip(*data), c=colors)
+    plt.title("Data before applying to cosine PCA")
+    plt.show()
     pca_cosine_data = kernel_pca2_cosine.fit_transform(data)
     plt.title("PCA: cosine kernel, " + ("no " if not centering else "") + "centering, " + str(kernel_pca2_cosine.n_components) + " principal components")
     plt.scatter(*zip(*pca_cosine_data), c=colors)
@@ -53,6 +56,9 @@ def run_cosine_pca(data, colors, centering):
 
 def run_rbf_pca(data, colors, gamma):
     kernel_pca2_rbf = KernelPCA(n_components=2, kernel="rbf")
+    plt.scatter(*zip(*data), c=colors)
+    plt.title("Data before applying to rbf PCA")
+    plt.show()
     kernel_pca2_rbf.gamma = gamma
     pca_rbf_data = kernel_pca2_rbf.fit_transform(data)
     plt.title("PCA: RBF kernel, gamma: " + str(gamma) + ", n_components: " + str(kernel_pca2_rbf.n_components))
