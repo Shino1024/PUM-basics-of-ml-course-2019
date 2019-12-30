@@ -83,9 +83,10 @@ def get_random_centroids(dataset, no_centroids):
     return random.sample(list(dataset), no_centroids)
 
 
-def show_dataset(dataset):
+def show_dataset(dataset, x):
     for key in dataset:
         plt.scatter(*zip(*dataset[key]))
+        plt.title(x + " dataset, " + str(len(dataset[key])) + " points")
         plt.show()
 
 
@@ -142,8 +143,8 @@ def run():
     dataset = prepare_dataset()
     spoiled_dataset = prepare_spoiled_dataset()
     # print(points[100])
-    show_dataset(dataset)
-    show_dataset(spoiled_dataset)
+    show_dataset(dataset, "Normal")
+    show_dataset(spoiled_dataset, "Spoiled")
     kmeans_result = {"dataset": run_kmeans(dataset), "spoiled_dataset": run_kmeans(spoiled_dataset)}
     dataset_means = get_kmeans_iteration_mean(kmeans_result["dataset"])
     print(json.dumps(dataset_means, indent=2))
