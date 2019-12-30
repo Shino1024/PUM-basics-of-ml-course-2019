@@ -13,7 +13,7 @@ DIMENSIONS = [
 ]
 
 POINTS = 50000
-SIDE_POINTS = 100
+EDGE_POINTS = 10
 
 RADIUS = 1
 SIDE = 2 * RADIUS
@@ -34,7 +34,7 @@ def corner_points(dimension):
 def side_points(dimension):
     return [
         (random.sample([random.choice([-1.0, 1.0]) for _ in range(dimension - 1)] + [random.uniform(-1.0, 1.0)], dimension), [1.0, 1.0, 0.0])
-        for _ in range(SIDE_POINTS)
+        for _ in range(EDGE_POINTS * dimension * (2 ** (dimension - 1)))
     ]
 
 
