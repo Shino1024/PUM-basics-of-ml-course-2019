@@ -13,11 +13,11 @@ POINTS = [
     300,
     500,
     1000,
-    3000,
-    5000
+    # 3000,
+    # 5000
 ]
-K_MEANS_MAX = 5
-ITERATIONS = 2
+K_MEANS_MAX = 20
+ITERATIONS = 10
 KMEANS_INITIALIZATION = [
     "random",
     "forgy",
@@ -160,6 +160,7 @@ def run():
                 plot_data[kmeans_initialization][points][k] = dataset_means[k][kmeans_initialization][points]
             plt.xlabel("k")
             plt.ylabel("Mean scores with standard deviations of normal dataset")
+            plt.title("")
             plt.scatter(plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values())
             keys, values = plot_data[kmeans_initialization][points].keys(), plot_data[kmeans_initialization][points].values()
             for k in range(1, K_MEANS_MAX + 1):
