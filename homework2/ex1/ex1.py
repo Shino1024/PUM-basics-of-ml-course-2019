@@ -2,8 +2,7 @@ from sklearn import svm
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_curve, precision_recall_curve, \
-    fowlkes_mallows_score, precision_score, recall_score, f1_score, auc, average_precision_score, \
-    plot_precision_recall_curve
+    fowlkes_mallows_score, precision_score, recall_score, f1_score, auc, average_precision_score
 from PIL import Image
 import numpy as np
 import json
@@ -169,7 +168,7 @@ def run():
     training_data = {}
     for filename in FILENAMES:
         X_train, X_test, y_train, y_test = train_test_split(datasets[filename]["model"], datasets[filename]["labels"],
-                                                            test_size=0.2, random_state=random.randint(10, 50))
+                                                            test_size=0.2, random_state=0)
         training_data[filename] = {"X_train": X_train, "X_test": X_test, "y_train": y_train, "y_test": y_test}
         for knn in knns:
             if knn.metric == "mahalanobis":
