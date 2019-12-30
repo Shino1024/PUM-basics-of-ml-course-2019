@@ -3,6 +3,7 @@ from PIL import Image
 from sklearn.svm import SVC
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 
 COLORS = {
@@ -12,17 +13,11 @@ COLORS = {
 
 
 C_COEFFICIENTS = [
+    0.001,
     0.01,
-    0.03,
     0.1,
-    0.3,
     1,
-    3,
-    10,
-    30,
-    100,
-    300,
-    1000
+    10
 ]
 
 
@@ -33,7 +28,7 @@ SVC_KERNELS = [
 ]
 
 
-GAMMAS = np.logspace(-9, 3, 13)
+GAMMAS = np.logspace(-5, 2, 10)
 
 
 def load_data():
@@ -64,15 +59,29 @@ def run_svm(dataset, labels, kernel, c, gamma="scale"):
     return svc
 
 
-def pixel_in_appropriate_area(a, xx, pixel):
-    return 1
+def pixel_in_appropriate_area_linear(a, xx, yy, pixel, classification):
+    # print("a:", a)
+    # print("xx:", xx)
+    # print("yy:", yy)
+    # print("pixel:", pixel)
+    b = yy[0] - a * xx[0]
+    # print("B:", b)
+    if classification == 1:
+        if pixel[1] >= a * pixel[0] + b:
+            return 1
+        elif pixel[1] <= a * pixel[0] + b:
+            return 0
+    elif classification == -1:
+        if pixel[1] >= a * pixel[0] + b:
+            return 0
+        elif pixel[1] <= a * pixel[0] + b:
+            return 1
+    return 0
 
 
-def run():
-    pixels, labels, shape = load_data()
-    results = {svc_kernel: {c_coefficient: [] for c_coefficient in C_COEFFICIENTS} for svc_kernel in SVC_KERNELS}
-    for c in C_COEFFICIENTS:
-        svm_result = run_svm(pixels, labels, "linear", c)
+def show_svm_result(svm_result, pixels, kernel, c, labels):
+    plt.title("Classification with the kernel " + kernel + ", c = " + str(c))
+    if kernel == "linear":
         w = svm_result.coef_[0]
         a = -w[0] / w[1]
         xx = np.linspace(0, 96)
@@ -81,36 +90,233 @@ def run():
         yy_down = yy - np.sqrt(1 + a ** 2) * margin
         yy_up = yy + np.sqrt(1 + a ** 2) * margin
 
-# plot the line, the points, and the nearest vectors to the plane
         plt.plot(xx, yy, 'k-')
         plt.plot(xx, yy_down, 'k--')
         plt.plot(xx, yy_up, 'k--')
 
-        plt.scatter(svm_result.support_vectors_[:, 0], svm_result.support_vectors_[:, 1],
-                    s=80, facecolors='none')
+        plt.scatter(svm_result.support_vectors_[:, 0], svm_result.support_vectors_[:, 1], s=80, facecolors='none')
         plt.scatter(pixels[:, 0], pixels[:, 1], c=list(map(lambda x: "#FF0000" if x == 0 else "#0000FF", labels)))
 
         plt.axis('tight')
         plt.show()
-        wrongness_list = [
-            pixel_in_appropriate_area(a, xx, pixel) for pixel in pixels
-        ]
-        wrongness = sum(wrongness_list) / len(wrongness_list)
-        results["linear"][c] = [(margin, wrongness)]
-        print("=============")
+        return a, xx, yy, margin
+    elif kernel == "rbf":
+        plt.scatter(svm_result.support_vectors_[:, 0], svm_result.support_vectors_[:, 1], s=80, facecolors='none')
+        plt.scatter(pixels[:, 0], pixels[:, 1], c=list(map(lambda x: "#FF0000" if x == 0 else "#0000FF", labels)))
+
+        plt.axis('tight')
+        plt.show()
+        return 20
+    elif kernel == "poly":
+        plt.scatter(svm_result.support_vectors_[:, 0], svm_result.support_vectors_[:, 1], s=80, facecolors='none')
+        plt.scatter(pixels[:, 0], pixels[:, 1], c=list(map(lambda x: "#FF0000" if x == 0 else "#0000FF", labels)))
+
+        plt.axis('tight')
+        plt.show()
+        return 50
+
+
+def calculate_wrongness_linear(svm_result, a, xx, yy, pixels):
+    wrong_pixels_count = {"red": 0, "blue": 0}
+    pixels_count = {"red": 0, "blue": 0}
+    for pixel in pixels:
+        classification = svm_result.predict([pixel])
+        if classification > 0:
+            if not pixel_in_appropriate_area_linear(a, xx, yy, pixel, classification):
+                wrong_pixels_count["red"] += 1
+            pixels_count["red"] += 1
+        elif classification == 0:
+            if not pixel_in_appropriate_area_linear(a, xx, yy, pixel, classification):
+                wrong_pixels_count["blue"] += 1
+            pixels_count["blue"] += 1
+        else:
+            print("oh")
+    wrongness = {
+        "red": wrong_pixels_count["red"] / pixels_count["red"] if pixels_count["red"] > 0 else 0,
+        "blue": wrong_pixels_count["blue"] / pixels_count["blue"] if pixels_count["blue"] > 0 else 0
+    }
+    return wrongness
+
+
+def calculate_wrongness(svm_result, pixels):
+    wrong_pixels_count = {"red": 0, "blue": 0}
+    pixels_count = {"red": 0, "blue": 0}
+    # for pixel in pixels:
+    #     classification = svm_result.predict([pixel])
+    #     if classification > 0:
+    #         if not pixel_in_appropriate_area_linear(a, xx, yy, pixel, classification):
+    #             wrong_pixels_count["red"] += 1
+    #         pixels_count["red"] += 1
+    #     elif classification == 0:
+    #         if not pixel_in_appropriate_area_linear(a, xx, yy, pixel, classification):
+    #             wrong_pixels_count["blue"] += 1
+    #         pixels_count["blue"] += 1
+    #     else:
+    #         print("oh")
+    wrongness = {
+        "red": wrong_pixels_count["red"] / pixels_count["red"] if pixels_count["red"] > 0 else 0,
+        "blue": wrong_pixels_count["blue"] / pixels_count["blue"] if pixels_count["blue"] > 0 else 0
+    }
+    return wrongness
+
+
+def plot_results(results):
+    for svc_kernel in SVC_KERNELS:
+        if svc_kernel == "rbf":
+            for gamma in GAMMAS:
+                margins = []
+                wrongnesses = {"red": [], "blue": []}
+                for c in C_COEFFICIENTS:
+                    margin, wrongness, _ = results[svc_kernel][gamma][c]
+                    margins.append(margin)
+                    wrongnesses["red"].append(wrongness["red"])
+                    wrongnesses["blue"].append(wrongness["blue"])
+                plt.title("svm, svc_kernel: " + svc_kernel + ", gamma: " + str(gamma))
+                plt.xlabel("c")
+                plt.ylabel("wrongness")
+                plt.title("svm, svc_kernel: rbf, gamma: %f" % (gamma,))
+                plt.plot(C_COEFFICIENTS, wrongnesses["red"], "r")
+                plt.plot(C_COEFFICIENTS, wrongnesses["blue"], "b")
+                plt.show()
+                plt.title("margin, svc_kernel: " + svc_kernel)
+                plt.xlabel("c")
+                plt.ylabel("wrongness")
+                plt.plot(C_COEFFICIENTS, margins, "r")
+                plt.plot(C_COEFFICIENTS, margins, "b")
+                plt.show()
+            # for c in C_COEFFICIENTS:
+            #     for gamma in results[svc_kernel][c]:
+            #         print(results[svc_kernel][c])
+            #         margin, wrongness, svm_result = results[svc_kernel][c][gamma]
+            #         plt.title("svc_kernel: " + svc_kernel + ", c = " + str(c) + ", gamma = " + str(gamma))
+            #         plt.xlabel("c")
+            #         plt.ylabel("wrongness")
+            #         plt.plot(wrongness["red"].keys(), wrongness["red"].values(), 'r')
+            #         plt.plot(wrongness["blue"].keys(), wrongness["blue"].values(), 'b')
+            #         plt.show()
+        else:
+            margins = []
+            wrongnesses = {"red": [], "blue": []}
+            for c in C_COEFFICIENTS:
+                margin, wrongness, _ = results[svc_kernel][c]
+                margins.append(margin)
+                wrongnesses["red"].append(wrongness["red"])
+                wrongnesses["blue"].append(wrongness["blue"])
+            plt.title("svm, svc_kernel: " + svc_kernel)
+            plt.xlabel("c")
+            plt.ylabel("wrongness")
+            plt.plot(C_COEFFICIENTS, wrongnesses["red"], "r")
+            plt.plot(C_COEFFICIENTS, wrongnesses["blue"], "b")
+            plt.show()
+            plt.title("margin, svc_kernel: " + svc_kernel)
+            plt.xlabel("c")
+            plt.ylabel("wrongness")
+            plt.plot(C_COEFFICIENTS, margins, "r")
+            plt.plot(C_COEFFICIENTS, margins, "b")
+            plt.show()
+            # for c in C_COEFFICIENTS:
+            #     print(results[svc_kernel][c])
+            #     margin, wrongness, svm_result = results[svc_kernel][c]
+            #     plt.title("svc_kernel: " + svc_kernel)
+            #     plt.xlabel("c")
+            #     plt.ylabel("wrongness")
+            #     plt.plot(wrongness["red"].keys(), wrongness["red"].values(), 'r')
+            #     plt.plot(wrongness["blue"].keys(), wrongness["blue"].values(), 'b')
+            #     plt.show()
+
+
+def run():
+    pixels, labels, shape = load_data()
+    results = {svc_kernel: {c_coefficient: {} for c_coefficient in C_COEFFICIENTS} for svc_kernel in SVC_KERNELS}
+    results["rbf"] = {}
+    for c in C_COEFFICIENTS:
+        svm_result = run_svm(pixels, labels, "linear", c)
+        a, xx, yy, margin = show_svm_result(svm_result, pixels, "linear", c, labels)
+        # print(pixels[0])
+        wrongness = calculate_wrongness_linear(svm_result, a, xx, yy, pixels)
+        results["linear"][c] = (margin, wrongness, svm_result)
+        # print("=============")
 
     for c in C_COEFFICIENTS:
         svm_result = run_svm(pixels, labels, "poly", c)
-        results["poly"][c] = [svm_result]
+        margin = show_svm_result(svm_result, pixels, "poly", c, labels)
+        # a, xx, yy, margin = show_svm_result(svm_result, pixels, "poly", labels)
+        # wrongness = calculate_wrongness(svm_result, a, xx, yy, pixels)
+        wrongness = calculate_wrongness(svm_result, pixels)
+        results["poly"][c] = (margin, wrongness, svm_result)
+
+    for gamma in GAMMAS:
+        results["rbf"][gamma] = {}
+        for c in C_COEFFICIENTS:
+            svm_result = run_svm(pixels, labels, "rbf", c, gamma)
+            # a, xx, yy, margin = show_svm_result(svm_result, pixels, "rbf", labels)
+            # wrongness = calculate_wrongness(svm_result, a, xx, yy, pixels)
+            margin = show_svm_result(svm_result, pixels, "rbf", c, labels)
+            wrongness = calculate_wrongness(svm_result, pixels)
+            # print(svm_result.support_vectors_)
+            results["rbf"][gamma][c] = (margin, wrongness, svm_result)
+
+    plot_results(results)
+    # print(results["linear"])
 
     for c in C_COEFFICIENTS:
-        results["rbf"][c] = {}
-        for gamma in GAMMAS:
-            svm_result = run_svm(pixels, labels, "rbf", c, gamma)
-            print(svm_result.support_vectors_)
-            results["rbf"][c][gamma] = svm_result
+        for svc_kernel in SVC_KERNELS:
+            if svc_kernel == "rbf":
+                for gamma, gamma_result in results[svc_kernel].items():
+                    margin, wrongness, svm_result = gamma_result[c]
 
-    # print(results["linear"])
+                    X = pixels
+                    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+                    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+                    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.2),
+                                         np.arange(y_min, y_max, 0.2))
+
+                    clf = svm_result
+                    # plt.subplot(2, 2, i + 1)
+                    # plt.subplots_adjust(wspace=0.4, hspace=0.4)
+
+                    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+
+                    # Put the result into a color plot
+                    Z = Z.reshape(xx.shape)
+                    plt.contourf(xx, yy, Z, c=["#DD2222", "#2222DD"], alpha=0.8)
+
+                    # Plot also the training points
+                    plt.scatter(X[:, 0], X[:, 1], c=["#FF0000" if svm_result.predict([x]) > 0 else "#0000FF" for x in zip(X[:, 0], X[:, 1])])
+                    plt.xlim(xx.min(), xx.max())
+                    plt.ylim(yy.min(), yy.max())
+                    plt.xticks(range(x_min, x_max, 20))
+                    plt.yticks(range(y_min, y_max, 20))
+                    plt.title("space division, svc_kernel = %s, gamma = %f, c = %f" % (svc_kernel, gamma, c))
+
+                    plt.show()
+            else:
+                margin, wrongness, svm_result = results[svc_kernel][c]
+                X = pixels
+                x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+                y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+                xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.2),
+                                     np.arange(y_min, y_max, 0.2))
+
+                clf = svm_result
+                # plt.subplot(2, 2, i + 1)
+                # plt.subplots_adjust(wspace=0.4, hspace=0.4)
+
+                Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+
+                # Put the result into a color plot
+                Z = Z.reshape(xx.shape)
+                plt.contourf(xx, yy, Z, c=["#DD2222", "#2222DD"], alpha=0.8)
+
+                # Plot also the training points
+                plt.scatter(X[:, 0], X[:, 1], c=["#FF0000" for x in zip(X[:, 0], X[:, 1] if svm_result.predict(x) > 0 else "#0000FF")])
+                plt.xlim(xx.min(), xx.max())
+                plt.ylim(yy.min(), yy.max())
+                plt.xticks(range(x_min, x_max, 20))
+                plt.yticks(range(y_min, y_max, 20))
+                plt.title("space division, svc_kernel = %s, c = %f" % (svc_kernel, c))
+
+                plt.show()
 
 
 if __name__ == "__main__":
