@@ -1,6 +1,6 @@
 from PIL import Image
 import numpy as np
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, silhouette_samples
 from sklearn.cluster import KMeans
 import json
 from kneed import KneeLocator
@@ -120,6 +120,8 @@ def draw_clusters(pca_map):
 
 def draw_silhouette(pca_map, labels):
     silhouette = silhouette_score(pca_map, labels)
+    silhouette_coefficients = silhouette_samples(pca_map, labels)
+    print(silhouette_coefficients)
 
 
 def run_all(dataset, shape):
