@@ -229,7 +229,6 @@ def run():
                     # plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
                     Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])
-                    print(Z)
 
                     # Put the result into a color plot
                     # Z0 = Z[:, 0].reshape(xx.shape)
@@ -249,6 +248,7 @@ def run():
                     plt.title("space division, svc_kernel = %s, gamma = %f, c = %f" % (svc_kernel, gamma, c))
 
                     plt.show()
+                    print("SHOW")
             else:
                 margin, wrongness, svm_result = results[svc_kernel][c]
                 X = pixels
@@ -262,7 +262,6 @@ def run():
                 # plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
                 Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])
-                print(Z)
 
                 # Put the result into a color plot
                 # Put the result into a color plot
@@ -281,6 +280,7 @@ def run():
                 plt.title("space division, svc_kernel = %s, c = %f" % (svc_kernel, c))
 
                 plt.show()
+                print("SHOW")
 
 
 if __name__ == "__main__":
