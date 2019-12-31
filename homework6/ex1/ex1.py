@@ -73,8 +73,8 @@ def get_optimal_k_silhouette(dataset):
 def get_optimal_k_gap_statistic(dataset):
     optimal_k_generator = OptimalK(n_jobs=dataset.shape[0] ** 0.3)
     print(dataset.shape)
-    # k = optimal_k_generator(dataset, cluster_array=np.arange(2, len(CHOSEN_POINTS) + 1))
-    return 8
+    k = optimal_k_generator(dataset, cluster_array=np.arange(2, len(CHOSEN_POINTS) + 1))
+    return k
 
 
 def get_optimal_k(dataset, method):
@@ -97,13 +97,14 @@ def choose_initial_points(dataset, k):
     return dataset_points
 
 
-def run_kmeans(dataset, initial_points, shape):
+def run_kmeans(dataset, initial_points, shape, scoring_method):
     kmeans = KMeans(n_clusters=len(initial_points), init=initial_points, n_init=1)
     kmeans.fit(dataset)
     cluster_centers = kmeans.cluster_centers_
     cluster_labels = kmeans.labels_
     clustered_image = cluster_centers[cluster_labels].astype(np.int64)
     result = np.reshape(clustered_image, shape)
+    plt.title("After kmeans, initial points: " + str(len(initial_points)) + ", scoring method: " + scoring_method)
     plt.imshow(result)
     plt.show()
     plt.imshow(np.reshape(dataset, shape))
@@ -129,10 +130,10 @@ def run_all(dataset, shape):
         k = get_optimal_k(dataset, scoring_method)
         print("OPTIMAL K: ", k)
         initial_points = choose_initial_points(dataset, k)
-        kmeans_result, labels = run_kmeans(dataset, initial_points, shape)
+        kmeans_result, labels = run_kmeans(dataset, initial_points, shape, scoring_method)
         # pca_map = map_2d_pca(kmeans_result)
         # draw_clusters(pca_map)
-        draw_silhouette(kmeans_result, labels)
+        # draw_silhouette(kmeans_result, labels)
 
 
 def run():
